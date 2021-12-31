@@ -2,7 +2,7 @@ require 'digest'
 
 num = 0
 secret = 'ckczppom'
-until Digest::MD5.hexdigest(secret + num.to_s).match(/^0{5}/)
+until Digest::MD5.hexdigest(secret + num.to_s).match(/^0{6}/)
   num+=1
 end
 
