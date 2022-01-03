@@ -29,6 +29,7 @@ class Routes < Hash
     self[loc1][loc2] = dis
     self[loc2][loc1] = dis
   end
+
   def get_locations
     self.keys.sort
   end
@@ -41,16 +42,16 @@ File.open("./data.txt").each do |line|
   $routes.add_route(caps[0], caps[1], caps[2].to_i)
 end
 
-$shortest_distance = Float::INFINITY
-$shortest_route = []
+$longest_distance = 0
+$longest_route = []
 
 $routes.get_locations.permutation.to_a.each do |route|
   distance = route.each_cons(2).map { |locs| $routes[locs[0]].has_key?(locs[1]) ? $routes[locs[0]][locs[1]] : Float::INFINITY }.reduce(&:+)
-  if distance < $shortest_distance
-    $shortest_distance = distance
-    $shortest_route = route
+  if distance > $longest_distance
+    $longest_distance = distance
+    $longest_route = route
   end
 end
 
-p $shortest_route
-puts $shortest_distance
+p $longest_route
+puts $longest_distance
