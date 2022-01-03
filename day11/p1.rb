@@ -20,14 +20,97 @@ Given Santa's current password (your puzzle input), what should his next passwor
 Your puzzle input is hxbxwxba.
 =end
 
-$letters =* ('a'..'z')
+class Password
+  Letters = * ('a'..'z')
+  Numbers = * ('0'..'9')
+  NumbersLetters = Password::Numbers + Password::Letters
+  InvalidChars = "iol"
 
-def inc_password(s)
-  s.to_i(26)
+  def Password.init_map(a)
+    m = {}
+    a.each_with_index do |e, i|
+      m[e] = i
+    end
+    return m
+  end
+
+  def Password.init_invalid_chars()
+    Regexp.new("(" + Password::InvalidChars.split("").join("|") + ")")
+  end
+
+  LettersMap = Password::init_map(Password::Letters)
+  NumbersLettersMap = Password::init_map(Password::NumbersLetters)
+  InvalidCharsRegex = Password::init_invalid_chars()
+  RepeatGroupRegex = /(.)\1{1}/
+
+  def initialize(pass)
+    @password = pass
+  end
+
+  def incr
+    new_pass = @password
+    loop do
+      new_pass = incr_base26_str(new_pass)
+      if valid(new_pass)
+        break
+      else
+        if !has_valid_chars(new_pass)
+          new_pass = skip_invalid_chars(new_pass)
+        end
+      end
+    end
+    Password.new(new_pass)
+  end
+
+  def incr_base26_str(s = @password)
+    num_s = s.chars.map { |c| Password::NumbersLetters[Password::LettersMap[c]] }.join
+    num = num_s.to_i(26)
+    num += 1
+    num.to_s(26).rjust(8, "0").chars.map { |c| Password::Letters[Password::NumbersLettersMap[c]] }.join
+  end
+
+  def skip_invalid_chars(pass = @password)
+    (Password::InvalidChars).chars.each do |ic|
+      if pass.match(Regexp.new(ic))
+        tokens = pass.split(ic, 2)
+        pass = tokens[0] + ic
+        pass += ("z" * (8 - pass.length))
+      end
+    end
+    return pass
+  end
+
+  def to_s
+    @password
+  end
+
+  def valid(pass = @password)
+    has_valid_chars(pass) && has_straight(pass) && pairs_count(pass) >= 2
+  end
+
+  def has_straight(pass = @password)
+    pass.chars.each_cons(3).map { |s|
+      sum = 0
+      if (s[0].ord == (s[1].ord - 1)) && (s[1].ord == (s[2].ord - 1))
+        sum += 1
+      end
+      sum
+    }.reduce(&:+) > 0
+  end
+
+  def has_valid_chars(pass = @password)
+    if pass.match(Password::InvalidCharsRegex)
+      return false
+    end
+    return true
+  end
+
+  def pairs_count(pass = @password)
+    if pass.match(Password::RepeatGroupRegex)
+      return pass.scan(Password::RepeatGroupRegex).length
+    end
+    return 0
+  end
 end
 
-$input = "a"
-
-p $letters
-
-p inc_password($input)
+puts Password.new("hxbxwxba").incr.incr
