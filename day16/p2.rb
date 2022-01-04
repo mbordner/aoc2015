@@ -22,6 +22,18 @@ class Sue
   end
 end
 
+=begin
+
+As you're about to send the thank you note, something in the MFCSAM's instructions catches your eye.
+Apparently, it has an outdated retroencabulator, and so the output from the machine isn't exact
+values - some of them indicate ranges.
+
+In particular, the cats and trees readings indicates that there are greater than that many
+(due to the unpredictable nuclear decay of cat dander and tree pollen), while the pomeranians and
+goldfish readings indicate that there are fewer than that many (due to the modial interaction of magnetoreluctance).
+
+=end
+
 class Sues < Hash
   def add(s)
     self[s.id] = s
@@ -33,8 +45,19 @@ class Sues < Hash
       a_sues = []
       self.each do |sue_id, sue|
         attr_count = sue.send(attr_name)
-        if attr_count == nil || attr_count == attr_val
-          a_sues << sue
+        case attr_name
+        when "cats", "trees"
+          if attr_count == nil || attr_count > attr_val
+            a_sues << sue
+          end
+        when "pomeranians", "goldfish"
+          if attr_count == nil || attr_count < attr_val
+            a_sues << sue
+          end
+        else
+          if attr_count == nil || attr_count == attr_val
+            a_sues << sue
+          end
         end
       end
       if a_sues.length > 0
