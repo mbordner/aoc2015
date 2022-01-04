@@ -20,6 +20,8 @@ how many points does the winning reindeer have?
 =end
 
 class Reindeer
+  attr_reader :name, :speed, :duration, :rest_duration
+
   def initialize(name, speed, duration, rest_duration)
     @name = name
     @speed = speed
@@ -28,8 +30,73 @@ class Reindeer
   end
 
   def travel_stats
-    [@speed, @duration, @duration + @rest_duration]
+    [@speed, @duration, @rest_duration]
   end
+end
+
+class RaceStats < Hash
+  attr_reader :distances, :scores, :timer_resting, :timer_running
+
+  def initialize()
+    @distances = {}
+    @scores = {}
+    @timer_resting = {}
+    @timer_running = {}
+    @deer = {}
+  end
+
+  def track(deer)
+    name = deer.name
+    @deer[name] = deer
+    @timer_running[name] = deer.duration
+    @timer_resting[name] = 0
+    @distances[name] = 0
+    @scores[name] = 0
+  end
+
+  def tick(secs = 1)
+    secs.times do
+      leader_distance = 0
+
+      @deer.keys.each do |name|
+        if @timer_running[name] > 0
+          @distances[name] += @deer[name].speed
+          @timer_running[name] -= 1
+          if @timer_running[name] == 0
+            @timer_resting[name] = @deer[name].rest_duration
+          end
+        else
+          @timer_resting[name] -= 1
+          if @timer_resting[name] == 0
+            @timer_running[name] = @deer[name].duration
+          end
+        end
+
+        if @distances[name] > leader_distance
+          leader_distance = @distances[name]
+        end
+      end
+
+      @distances.each do |n, v|
+        if v == leader_distance
+          @scores[n] += 1
+        end
+      end
+    end
+  end
+
+  def winner
+    score = 0
+    name = nil
+    @scores.each do |n, v|
+      if @scores[n] > score
+        score = @scores[n]
+        name = n
+      end
+    end
+    return name
+  end
+
 end
 
 class Herd < Hash
@@ -42,33 +109,28 @@ class Herd < Hash
     self.keys.sort
   end
 
+  def size
+    self.keys.length
+  end
+
   def reindeer(name)
     self[name]
   end
 
   def race(secs)
-    leader_name = nil
-    leader_distance = 0
+    stats = RaceStats.new
 
     names.each do |name|
       deer = reindeer(name)
-      speed, sprint_duration, sprint_rest_duration = deer.travel_stats
-      distance = secs / sprint_rest_duration * speed * sprint_duration
-      secs_remaining = secs % sprint_rest_duration
-
-      if secs_remaining < sprint_duration
-        distance += secs_remaining * speed
-      else
-        distance += sprint_duration * speed
-      end
-
-      if distance > leader_distance
-        leader_distance = distance
-        leader_name = name
-      end
+      stats.track(deer)
     end
 
-    [leader_name, leader_distance]
+    secs.times do
+      stats.tick
+    end
+
+    name = stats.winner
+    [name, stats.scores[name], stats.distances[name]]
   end
 end
 
@@ -79,6 +141,6 @@ File.open("./data.txt").each do |line|
   $herd.add(caps[0], caps[1].to_i, caps[2].to_i, caps[3].to_i)
 end
 
-leader, distance = $herd.race(2503)
+leader, score, distance = $herd.race(2503)
 
-puts leader, distance
+puts leader, score, distance
