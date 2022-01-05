@@ -44,5 +44,32 @@ File.open("./data.txt").each do |line|
   end
 end
 
-# molecules = $replacements.molecules?($molecule)
-# p molecules.length
+molecules = $replacements.molecules?($molecule)
+p molecules.length
+
+def build_molecule(replacements, electron, molecule)
+  steps = []
+
+  build_molecule_rec = -> (cur_molecule, steps) {
+    if cur_molecule == molecule
+      return steps << cur_molecule
+    elsif cur_molecule.length > molecule.length
+      return nil
+    else
+      next_steps = steps.dup
+      next_steps.push(cur_molecule)
+
+      next_molecules = replacements.molecules?(cur_molecule)
+      next_molecules.each do |nm|
+        result = build_molecule_rec.call(nm, next_steps)
+        if result != nil
+          return result
+        end
+      end
+    end
+  }
+
+  build_molecule_rec.call(electron, steps)
+end
+
+p build_molecule($replacements, "e", $molecule)
