@@ -87,7 +87,15 @@ class Grid
         ngrid[y][x] = nc
       end
     end
+    ngrid.turn_on_corners
     return ngrid
+  end
+
+  def turn_on_corners
+    @grid[0][0] = '#'
+    @grid[0][@max_x] = '#'
+    @grid[@max_y][0] = '#'
+    @grid[@max_y][@max_x] = '#'
   end
 
   def print
@@ -104,6 +112,7 @@ File.open("./data.txt").each do |line|
   $grid.add(line.strip)
 end
 
+$grid.turn_on_corners
 $grid.print
 
 $ngrid = $grid.dup
