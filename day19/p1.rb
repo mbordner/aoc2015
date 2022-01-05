@@ -14,7 +14,7 @@ class Replacements < Hash
       if tokens.length > 1
         replacements.each do |replacement|
           splits = ([sequence] * (tokens.length - 2)) << replacement
-          splits.permutation.each do |splits_p|
+          ([splits] * splits.length).each_with_index.map { |a, i| a.rotate(i) }.each do |splits_p|
             s = tokens.zip(splits_p).flatten.join
             if molecules.has_key?(s)
               molecules[s] += 1
@@ -32,7 +32,7 @@ end
 $replacements = Replacements.new
 $molecule = nil
 
-File.open("./test.txt").each do |line|
+File.open("./data.txt").each do |line|
   line = line.strip
   if line.length > 0
     if line.match(/^(\w+)\s+=>\s+(\w+)$/)
@@ -46,4 +46,4 @@ end
 
 molecules = $replacements.molecules?($molecule)
 
-p molecules
+p molecules.length
