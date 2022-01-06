@@ -30,6 +30,7 @@ class Replacements < Hash
 end
 
 $replacements = Replacements.new
+$deconstructs = Replacements.new
 $molecule = nil
 
 File.open("./data.txt").each do |line|
@@ -38,6 +39,7 @@ File.open("./data.txt").each do |line|
     if line.match(/^(\w+)\s+=>\s+(\w+)$/)
       caps = line.match(/^(\w+)\s+=>\s+(\w+)$/).captures
       $replacements.add(caps[0], caps[1])
+      $deconstructs.add(caps[1], caps[0])
     else
       $molecule = line
     end
@@ -47,29 +49,32 @@ end
 molecules = $replacements.molecules?($molecule)
 p molecules.length
 
-def build_molecule(replacements, electron, molecule)
+def deconstruct_molecule_to(replacements, molecule, electron)
   steps = []
+  failed = {}
 
-  build_molecule_rec = -> (cur_molecule, steps) {
-    if cur_molecule == molecule
-      return steps << cur_molecule
-    elsif cur_molecule.length > molecule.length
-      return nil
+  deconstruct_rec = -> (cur_molecule, steps) {
+    if cur_molecule == electron
+      return (steps.dup << cur_molecule).reverse
     else
-      next_steps = steps.dup
-      next_steps.push(cur_molecule)
-
-      next_molecules = replacements.molecules?(cur_molecule)
-      next_molecules.each do |nm|
-        result = build_molecule_rec.call(nm, next_steps)
-        if result != nil
-          return result
+      next_steps = steps.dup << cur_molecule
+      replacements.molecules?(cur_molecule).each do |nm|
+        if failed.has_key?(nm) == false
+          result = deconstruct_rec.call(nm, next_steps)
+          if result != nil
+            return result
+          else
+            failed[nm] = true
+          end
         end
       end
+      return nil
     end
   }
 
-  build_molecule_rec.call(electron, steps)
+  deconstruct_rec.call(molecule, steps)
 end
 
-p build_molecule($replacements, "e", $molecule)
+steps = deconstruct_molecule_to($deconstructs, $molecule, "e")
+p steps
+puts steps.length
