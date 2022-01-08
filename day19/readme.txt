@@ -27,8 +27,6 @@ Your puzzle input describes all of the possible replacements and, at the bottom,
 
 Your puzzle answer was 518.
 
-The first half of this puzzle is complete! It provides one gold star: *
-
 --- Part Two ---
 Now that the machine is calibrated, you're ready to begin molecule fabrication.
 
@@ -49,3 +47,7 @@ H => OH (on the second H) to get HOH
 So, you could make HOH after 3 steps. Santa's favorite molecule, HOHOHO, can be made in 6 steps.
 
 How long will it take to make the medicine? Given the available replacements and the medicine molecule in your puzzle input, what is the fewest number of steps to go from e to the medicine molecule?
+
+Your puzzle answer was 200.
+
+Both parts of this puzzle are complete! They provide two gold stars: **
