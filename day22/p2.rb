@@ -253,6 +253,12 @@ class GameState
   end
 
   def turn_with_player_spell(spell)
+    @player.affect_stats(SpellAffectStats.new(hit_points: -1))
+    winner = is_end_state
+    if winner != nil
+      return winner
+    end
+
     tick_all_players
     winner = is_end_state
     if winner != nil
