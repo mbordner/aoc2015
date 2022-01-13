@@ -47,6 +47,15 @@ class Player
     @effects.push(effect)
   end
 
+  def has_effect(spell)
+    @effects.each do |e|
+      if e.name == spell.name
+        return true
+      end
+    end
+    return false
+  end
+
   def tick()
     remaining_effects = []
     @effects.each do |e|
@@ -206,18 +215,32 @@ def create_player
   return p
 end
 
+def create_test_boss
+  b = Boss.new("Boss", 14, 0)
+  b.add_item(Item.new("Boss Sword", 0, ItemAffectStats.new(damage: 8)))
+  return b
+end
+
+def create_test_player
+  p = Player.new("Player", 10, 250)
+  return p
+end
+
 class GameState
   attr_reader :player, :boss
 
-  def initialize
-    super
-    @player = create_player
-    @boss = create_boss
+  def initialize(test = false)
+    @player = test ? create_test_player : create_player
+    @boss = test ? create_test_boss : create_boss
   end
 
   def tick_all_players
     @player.tick()
     @boss.tick()
+  end
+
+  def player_has_effect(name)
+    return @player.has_effect(name) || @boss.has_effect(name)
   end
 
   def is_end_state
@@ -270,7 +293,7 @@ class GameState
 end
 
 def get_cheapest_spell_options
-  initial_state = GameState.new
+  initial_state = GameState.new(false)
   initial_spell_options = initial_state.spell_options
   losing_paths = []
   winning_paths = []
@@ -290,18 +313,20 @@ def get_cheapest_spell_options
     next_spell_options = state.spell_options
 
     next_spell_options.each do |ns|
-      nwp, nlp = get_cheapest_spell_options_rec.call(ns, state.clone)
-      if nwp != nil
-        nwp.each do |ps|
-          ps.prepend(spell)
+      if state.player_has_effect(ns) == false
+        nwp, nlp = get_cheapest_spell_options_rec.call(ns, state.clone)
+        if nwp != nil
+          nwp.each do |ps|
+            ps.prepend(spell)
+          end
+          next_winning_paths.concat(nwp)
         end
-        next_winning_paths.concat(nwp)
-      end
-      if nlp != nil
-        nlp.each do |ps|
-          ps.prepend(spell)
+        if nlp != nil
+          nlp.each do |ps|
+            ps.prepend(spell)
+          end
+          next_losing_paths.concat(nlp)
         end
-        next_losing_paths.concat(nlp)
       end
     end
 
@@ -340,6 +365,9 @@ wp, mana = get_cheapest_spell_options
 p mana
 
 p wp
+wp.each do |s|
+  puts s
+end
 
 
 
