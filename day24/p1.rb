@@ -46,8 +46,41 @@ end
 length_selections = sum_groups_by_length.keys.repeated_combination(3).uniq.select { |a| a.reduce(&:+) == nums.length }.sort
 possible_ideal_length_selections = length_selections.select { |a| a[0] == length_selections[0][0] }
 
-p possible_ideal_length_selections
+expected_group1_length = possible_ideal_length_selections[0][0]
 
+$group_pairings = []
+$lowest_qe = Float::INFINITY
+$lowest_qe_group = nil
+
+sum_groups_by_length[expected_group1_length].each do |group1|
+  diff = nums.difference(group1)
+
+  second_groups = {}
+  total_groups(group_total, diff, [], second_groups)
+
+  if second_groups.length > 0
+    second_groups.each do |s, group2|
+
+      group3 = nums.difference(group1 + group2)
+
+      if group3.reduce(&:+) == group_total
+        $group_pairings.push([group1, group2, group3])
+        qe = group1.reduce(&:*)
+        if qe < $lowest_qe
+          $lowest_qe = qe
+          $lowest_qe_group = group1
+        end
+      end
+
+    end
+  end
+
+end
+p $group_pairings
+p $lowest_qe_group
+p $lowest_qe
+
+=begin
 def pair_groups(sum_groups_by_length, length_selections)
   pairing_results = []
   length_selections.each do |l1, l2, l3|
@@ -76,4 +109,5 @@ uniq_first_groups.each do |g|
 end
 
 p lowest_qe_group
-p lowest_qe
+p lowest_qe=end
+=end
