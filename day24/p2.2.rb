@@ -49,42 +49,39 @@ end
 $length_selections = $sum_groups_by_length.keys.repeated_combination($num_groups).uniq.select { |a| a.reduce(&:+) == $nums.length }.sort
 $possible_ideal_length_selections = $length_selections.select { |a| a[0] == $length_selections[0][0] }
 
-$expected_group1_length = $possible_ideal_length_selections[0][0]
-
 $group_pairings = []
 $lowest_qe = Float::INFINITY
 $lowest_qe_group = nil
 
-$sum_groups_by_length[$expected_group1_length].each do |group1|
-  diff = $nums.difference(group1)
-
-  second_groups = {}
-  total_groups($group_total, diff, [], second_groups)
-
-  if second_groups.length > 0
-    second_groups.each do |_, group2|
-      diff2 = $nums.difference(group1 + group2)
-      third_groups = {}
-      total_groups($group_total, diff2, [], third_groups)
-
-      if third_groups.length > 0
-        third_groups.each do |_, group3|
-          group4 = $nums.difference(group1 + group2 + group3)
-
-          if group4.reduce(&:+) == $group_total
-            $group_pairings.push([group1, group2, group3, group4])
-            qe = group1.reduce(&:*)
-            if qe < $lowest_qe
-              $lowest_qe = qe
-              $lowest_qe_group = group1
+$possible_ideal_length_selections.each do |l1, l2, l3, l4|
+  $sum_groups_by_length[l1].each do |group1|
+    $sum_groups_by_length[l2].each do |group2|
+      if group1 != group2
+        check = group1.dup.concat(group2).uniq
+        if check.length == group1.length + group2.length
+          $sum_groups_by_length[l3].each do |group3|
+            if group1 != group3 && group2 != group3 && group1.dup.concat
+              check2 = check.dup.concat(group3).uniq
+              if check2.length == group1.length + group2.length + group3.length
+                $sum_groups_by_length[l4].each do |group4|
+                  if group1 != group4 && group2 != group4 && group3 != group4
+                    if check2.dup.concat(group4).uniq.length == $nums.length
+                      $group_pairings.push([group1, group2, group3, group4])
+                      qe = group1.reduce(&:*)
+                      if qe < $lowest_qe
+                        $lowest_qe = qe
+                        $lowest_qe_group = group1
+                      end
+                    end
+                  end
+                end
+              end
             end
           end
         end
       end
     end
-
   end
-
 end
 
 p $lowest_qe_group
